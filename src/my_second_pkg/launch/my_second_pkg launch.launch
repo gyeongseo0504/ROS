@@ -1,0 +1,4 @@
+<launch>
+<node pkg="my_second_pkg" type="std_msgs_talker_node" name="std_msgs_talker_node1" output="screen" />
+<node pkg="my_second_pkg" type="std_msgs_listener_node" name="std_msgs_listener_node1" output="screen" />
+</launch>

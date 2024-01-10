@@ -23,9 +23,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES gugudan
-  CATKIN_DEPENDS roscpp rospy
-  DEPENDS system_lib
+#  LIBRARIES kukudan
+ CATKIN_DEPENDS roscpp rospy
+ DEPENDS system_lib
 )
 
 ###########
@@ -39,10 +39,24 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(gugudan_publisher_node src/gugudan_publisher.cpp)
-add_dependencies(gugudan_publisher_node ${gugudan_publisher_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(gugudan_publisher node ${catkin_LIBRARIES})
 
-add_executable(gugudan_subscriber_node src/gugudan_subscriber.cpp)
-add_dependencies(gugudan_subscriber node ${gugudan_subscriber_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(gugudan_subscriber_node ${catkin_LIBRARIES})
+#############
+## Testing ##
+#############
+
+## Add gtest based cpp test target and link libraries
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_kukudan.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
+
+## Add folders to be run by python nosetests
+# catkin_add_nosetests(test)
+
+add_executable(publisher_node src/publisher.cpp)
+add_dependencies(publisher_node ${publisher_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(publisher_node ${catkin_LIBRARIES})
+
+add_executable(subscriber_node src/subscriber.cpp)
+add_dependencies(subscriber_node ${subscriber_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(subscriber_node ${catkin_LIBRARIES})

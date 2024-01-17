@@ -34,6 +34,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(aeb_controller_node src/aeb_controller_node.cpp)
-add_dependencies(aeb_controller_node ${aeb_controller_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(aeb_controller_node ${catkin_LIBRARIES} )
+add_executable(aeb_control_node src/aeb_control_node.cpp)
+add_dependencies(aeb_control_node ${aeb_control_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(aeb_control_node ${catkin_LIBRARIES} )

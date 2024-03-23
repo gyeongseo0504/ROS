@@ -1,0 +1,19 @@
+<launch>
+	<node pkg = "move_waypoint" type = "move_waypoint_node_node" name = "move_waypoint" output = "screen">
+	
+	<param name = "poseupdate_topic"            type = "string" value   = "/poseupdate"/>
+	<param name = "target_wp_topic"             type = "string" value   = "/target_wp"/>
+	<param name = "flag_control_topic"          type = "string" value   = "/flag/control"/>
+	<param name = "cmd_vel_topic"               type = "string" value   = "/ackermann_steering_controller/cmd_vel"/>
+	<param name = "status_topic"                type = "string" value   = "/status/waypoint_move"/>
+	<param name = "type_cmd_vel_topic"          type = "string" value   = "/type_cmd_vel"/>
+	<param name = "target_speed_topic"          type = "string" value   = "/target_speed"/>
+	<param name = "control_speed_yaw_topic"     type = "string" value   = "/control_speed/yaw"/>
+	<param name = "target_yaw_radian"           type = "string" value   = "/target_yaw/radian"/>
+	<param name = "target_yaw_degree"           type = "string" value   = "/target_yaw/degree"/>
+	<param name = "target_waypoint_new_topic"   type = "string" value   = "/target_waypoint_new"/>
+	<param name = "move_base_simple_goal_topic" type = "string" value   = "/move_base_simple/goal"/>
+	<param name = "target_move_topic"           type = "string" value   = "/target_move"/>
+	<param name = "target_waypoint_line_topic"  type = "string" value   = "/wp/target_waypoint_line"/>
+  </node>
+</launch>

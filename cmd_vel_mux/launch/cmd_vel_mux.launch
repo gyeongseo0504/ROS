@@ -1,0 +1,8 @@
+<launch>
+	<node pkg = "cmd_vel_mux"	type = "cmd_vel_mux_node_node"	name = "cmd_vel_mux"	output="screen">
+	<param name = "mux_topic"	type = "string"	value = "/ackermann_steering_controller/cmd_vel"/>
+	<param name = "line_topic"	type = "string"	value = "/cmd_vel/line"/>
+	<param name = "yaw_topic"	type = "string"	value = "/cmd_vel/yaw"/>
+	<param name = "sonar_topic"	type = "string"	value = "/cmd_vel/sonar"/>
+  </node>
+</launch>

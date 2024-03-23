@@ -1,0 +1,15 @@
+<launch>
+   <node pkg = "Pioneer_control" type = "pioneer_control_node" name = "pioneer_control" output = "screen">
+   
+   <param name = "type_cmd_vel_topic"       type = "string"      value = "/type_cmd_vel"/>
+   <param name = "control_speed_yaw"        type = "string"      value = "/control_speed/yaw"/>  
+   <param name = "control_speed_line"       type = "string"      value = "/control_speed/line"/>
+   <param name = "control_speed_sonar"      type = "string"      value = "/control_speed/sonar"/> 
+   <param name = "target_yaw_degree_topic"  type = "string"      value = "/target_yaw/degree"/>  
+   <param name = "front_sonar_topic"        type = "string"      value = "/range_front"/>
+   <param name = "line_centroid_topic"      type = "string"      value = "/line_centroid"/>
+   <param name = "yaw_degree_topic"        type = "string"      value = "/yaw_degree"/>
+   <param name = "Kp_line_topic"            type = "string"      value = "Kp_line"/> 
+   
+   </node>
+</launch>

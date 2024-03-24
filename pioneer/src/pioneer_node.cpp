@@ -5,60 +5,54 @@
 #include "sensor_msgs/Imu.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Matrix3x3.h"
+#include "math.h"
 
+#define TSL1401CL_SIZE 320 
 #define DEG2RAD(x) (M_PI / 180.0) * x
 #define RAD2DEG(x) (180.0 / M_PI) * x
-
-#define TSL1401CL_SIZE 320
-#define THRESHOLD 0.1
-#define Line_Center 160.0
-#define OFFSET -13.0
-
+int mission_flag = 0;
+int stop = 1000;
+int Finish = 1001;
+//////////////////////////////////////////////////////////////////////// line
 double tsl1401cl_data[TSL1401CL_SIZE];
 int LineSensor_threshold_Data[TSL1401CL_SIZE];
-int mission_flag = 0;
 
-double line_error_old = 0.0;
+double Line_Center = 147;
+double OFFSET = 0;
 
-double front_sonar = 0.0;
-double left_sonar = 0.0;
-double right_sonar = 0.0;
-double error_old = 0.0;
-int maze_status = 0;
-
-double roll, pitch, yaw;
-double error_wall_old = 0.0;
-double error_yaw_old = 0.0;
-double error_lane_old = 0.0;
-
-void threshold(double tsl1401cl_data[], int ThresholdData[], int tsl1401cl_size, double threshold)
+void threshold(const std_msgs::Float32MultiArray::ConstPtr &msg)
 {
-    for (int i = 0; i < TSL1401CL_SIZE; i++)
-    {
-        if (tsl1401cl_data[i] > threshold)
-        {
-            ThresholdData[i] = 255;
-        }
-        else
-        {
-            ThresholdData[i] = 0;
-        }
-    }
-}
+    double THRESHOLD = 0.01;
 
-void tsl1401cl_Callback(const std_msgs::Float32MultiArray::ConstPtr &msg)
-{
     for (int i = 0; i < TSL1401CL_SIZE; i++)
     {
         tsl1401cl_data[i] = msg->data[i];
     }
-    threshold(tsl1401cl_data, LineSensor_threshold_Data, TSL1401CL_SIZE, THRESHOLD);
+
+    for (int i = 0; i < TSL1401CL_SIZE; i++)
+    {
+        if (tsl1401cl_data[i] > THRESHOLD)
+        {
+            LineSensor_threshold_Data[i] = 180;  // 라인이 검출되는 곳은 180 출력
+        }
+        else
+        {
+            LineSensor_threshold_Data[i] = 0;  // 아닌 곳은 0 출력
+        }
+    }
+    printf("Threshold Data: \n");
+
+    for (int i = 0; i < TSL1401CL_SIZE; i++)
+    {
+        printf("%d ", LineSensor_threshold_Data[i]);
+    }
+    printf("\n");
 }
 
-double find_line_center()
+int find_line_center()
 {
-    double centroid = 0.0;
-    double mass_sum = 0.0;
+    int centroid = 0;
+    int mass_sum = 0;
 
     for (int i = 0; i < TSL1401CL_SIZE; i++)
     {
@@ -66,124 +60,104 @@ double find_line_center()
         centroid += LineSensor_threshold_Data[i] * i;
     }
 
-    if (mass_sum != 0)
+    if (mass_sum == 0)// mass_sum이 0이라는건 라인이 안잡힌다는것
     {
-        centroid = centroid / mass_sum;
+        return stop;
     }
-
+    else if(mass_sum == 180 * TSL1401CL_SIZE)//트랙이 아닌곳은 카메라에서 전부 인식하는것으로 보임
+    {                                        //모두 180이 인식되면 트랙 밖이 카메라에 보인다는것
+		return Finish;
+	}
+    
+    centroid = centroid / mass_sum;
+    printf("Line Centroid: %d\n", centroid);
     return centroid;
 }
 
-geometry_msgs::Twist PID_lane_control(double Kp_lane, double Ki_lane, double Kd_lane)
+geometry_msgs::Twist lane_control(double centroid, double kp, double ki, double kd)
 {
     geometry_msgs::Twist cmd_vel;
 
-    double lineCenter = find_line_center();
+    double error = 0.0;
+    double error_d = 0.0;
+    double error_old = 0.0;
+    double Steering_Angle = 0.0;
 
-    double error_lane = Line_Center - lineCenter + OFFSET;
-    double error_lane_d = error_lane - error_lane_old;
-    double error_lane_sum = 0.0;
-
-    error_lane_sum += error_lane;
-
-    double steering_angle = Kp_lane * error_lane + Ki_lane * error_lane_sum + Kd_lane * error_lane_d;
-
-    cmd_vel.linear.x = 0.5;
-    cmd_vel.angular.z = steering_angle;
-
-    error_lane_old = error_lane;
-
-    return cmd_vel;
-}
-
-geometry_msgs::Twist PID_wall_following(double Kp_wall, double Ki_wall, double Kd_wall)
-{
-    geometry_msgs::Twist cmd_vel;
-
-    double error_wall = left_sonar - right_sonar;
-    double error_wall_d = error_wall - error_wall_old;
-    double error_wall_sum = 0.0;
-    error_wall_sum += error_wall;
-
-    double steering_control = Kp_wall * error_wall + Ki_wall * error_wall_sum + Kd_wall * error_wall_d;
-
-    if (front_sonar < 0.9)
+    if (centroid == 0.0)
     {
         cmd_vel.linear.x = 0.0;
         cmd_vel.angular.z = 0.0;
     }
     else
     {
-        cmd_vel.linear.x = 0.6;
-        cmd_vel.angular.z = steering_control;
-    }
+        error = Line_Center - centroid + OFFSET;
+        error_d = error - error_old;
+        Steering_Angle = kp * error + kd * error_d + ki * 0;
 
-    error_wall_old = error_wall;
+        cmd_vel.linear.x = 0.4;
+        cmd_vel.angular.z = Steering_Angle / 130;
+
+        error_old = error;
+    }
 
     return cmd_vel;
 }
+//////////////////////////////////////////////////////////////////////// line
+//////////////////////////////////////////////////////////////////////// yaw
+double roll, pitch, yaw;
+double error_old = 0.0;
 
-geometry_msgs::Twist PID_yaw_control(double Kp_yaw, double Ki_yaw, double Kd_yaw, double target_yaw_degree)
+double normalizeYaw(double yaw_deg)
+{
+    if (yaw_deg > 360)
+    {
+        yaw_deg = yaw_deg - 360;//각이 360보다 커지면 -360
+    }
+    else if (yaw_deg < 0)
+    {
+        yaw_deg = yaw_deg + 360;//각이 음수가 나오면 +360
+    }
+
+    return yaw_deg;
+}
+
+geometry_msgs::Twist PID_yaw_control(double Kp, double Ki, double Kd, double target_yaw_degree)
 {
     geometry_msgs::Twist cmd_vel;
 
-    double yaw_degree = yaw * 180.0 / M_PI;
+    double yaw_deg = RAD2DEG(yaw);
+    yaw_deg = normalizeYaw(yaw_deg);
 
-    if (yaw_degree > 360)
-    {
-        yaw_degree = yaw_degree - 360;
-    }
-    else if (yaw_degree < 0)
-    {
-        yaw_degree = yaw_degree + 360;
-    }
+    double error = target_yaw_degree - yaw_deg;
 
-    double error_yaw = target_yaw_degree - yaw_degree;
-
-    if (error_yaw > 180)
+    if (error > 180)
     {
-        error_yaw = error_yaw - 360;
+        error = error - 360;//180보다 크다면, error에서 360을 빼서 반대 방향으로 회전
     }
-    else if (error_yaw < -180)
+    else if (error < -180)
     {
-        error_yaw = error_yaw + 360;
+        error = error + 360;//-180보다 작다면, error에 360을 더해 반대 방향으로 회전
     }
 
-    double error_yaw_sum = 0.0;
-    double error_yaw_d = error_yaw - error_yaw_old;
+    double error_sum = 0.0;
+    double error_d = error - error_old;
+    error_sum += error;
 
-    error_yaw_sum += error_yaw;
+    double Steering_Angle = Kp * error + Ki * error_sum + Kd * error_d;
 
-    double Steering_Angle = Kp_yaw * error_yaw + Ki_yaw * error_yaw_sum + Kd_yaw * error_yaw_d;
-
-    cmd_vel.linear.x = 0.5;
+    cmd_vel.linear.x = 0.4;
     cmd_vel.angular.z = Steering_Angle;
 
-    if (fabs(error_yaw) < 1.0)
+    if (fabs(error) < 0.5)
     {
         cmd_vel.linear.x = 0.0;
-        cmd_vel.angular.z = 0.0;
+        //cmd_vel.angular.z = 0.0;
         mission_flag++;
     }
 
-    error_yaw_old = error_yaw;
+    error_old = error;
 
     return cmd_vel;
-}
-
-void Front_Sonar_Callback(const sensor_msgs::Range::ConstPtr &msg)
-{
-    front_sonar = msg->range;
-}
-
-void Left_Sonar_Callback(const sensor_msgs::Range::ConstPtr &msg)
-{
-    left_sonar = msg->range;
-}
-
-void Right_Sonar_Callback(const sensor_msgs::Range::ConstPtr &msg)
-{
-    right_sonar = msg->range;
 }
 
 void imu1Callback(const sensor_msgs::Imu::ConstPtr &msg)
@@ -195,135 +169,160 @@ void imu1Callback(const sensor_msgs::Imu::ConstPtr &msg)
         msg->orientation.w);
 
     tf2::Matrix3x3 m(q);
-
     m.getRPY(roll, pitch, yaw);
 
-    double yaw_degree = yaw * 180.0 / M_PI;
+    double yaw_deg = normalizeYaw(RAD2DEG(yaw));
+    printf("%f\n", yaw_deg);
+}
+//////////////////////////////////////////////////////////////////////// yaw
+//////////////////////////////////////////////////////////////////////// wall
+double front_sonar = 0.0;
+double left_sonar = 0.0;
+double right_sonar = 0.0;
 
-    if (yaw_degree > 360)
-    {
-        yaw_degree = yaw_degree - 360;
-    }
-    else if (yaw_degree < 0)
-    {
-        yaw_degree = yaw_degree + 360;
-    }
+void FrontSonarCallback(const sensor_msgs::Range::ConstPtr& msg)
+{
+  front_sonar = msg->range;
+  printf("Front Sonar: %.2f    ", front_sonar);
 }
 
+void LeftSonarCallback(const sensor_msgs::Range::ConstPtr& msg)
+{
+  left_sonar = msg->range;
+  printf("Left Sonar:  %.2f    ", left_sonar);
+}
+
+void RightSonarCallback(const sensor_msgs::Range::ConstPtr& msg)
+{
+  right_sonar = msg->range;
+  printf("Right Sonar: %.2f\n", right_sonar);
+}
+
+geometry_msgs::Twist WallFollowing(double kp, double ki, double kd)//geometry_msgs::Twist 타입의 메세지 반환하는 함수 
+{
+  geometry_msgs::Twist cmd_vel;
+  double error = left_sonar - right_sonar;
+  double error_old = 0.0;
+  double error_d = error - error_old;  
+  double error_sum = 0.0;
+  error_sum += error;  
+  
+  double steering_control = kp * error + ki * error_sum + kd * error_d;
+
+  if (front_sonar < 0.9)
+  {
+    cmd_vel.linear.x = 0.0;
+    cmd_vel.angular.z = 0.0;
+  }
+  else
+  {
+    cmd_vel.linear.x = 0.4;
+    cmd_vel.angular.z = steering_control;
+  }
+
+  error_old = error;
+
+  return cmd_vel;
+}
+//////////////////////////////////////////////////////////////////////// wall
 int main(int argc, char **argv)
 {
     int count = 0;
-    double target_yaw_degree = 0.0;
 
-    double Kp_lane = 0.0015;
-    double Ki_lane = 0.0;
-    double Kd_lane = 0.005;
-
-    double Kp_wall = 1.2;
-    double Ki_wall = 0.0;
-    double Kd_wall = 0.8;
-
-    double Kp_yaw = 0.02;
-    double Ki_yaw = 0.0;
-    double Kd_yaw = 0.5;
-
-    ros::init(argc, argv, "pioneer");
+    ros::init(argc, argv, "Pioneer");
     ros::NodeHandle n;
 
+    ros::Subscriber tsl1401cl_sub = n.subscribe("/tsl1401cl", 10, threshold);
+    ros::Subscriber yaw_control_sub = n.subscribe("/imu", 1000, imu1Callback);
+    ros::Subscriber front_sonar_sub = n.subscribe("range_front", 1000, FrontSonarCallback);
+    ros::Subscriber left_sonar_sub = n.subscribe("range_front_left", 1000, LeftSonarCallback);
+    ros::Subscriber right_sonar_sub = n.subscribe("range_front_right", 1000, RightSonarCallback);
+  
+    ros::Publisher cmd_vel_pub = n.advertise<geometry_msgs::Twist>("/ackermann_steering_controller/cmd_vel", 1000);
     geometry_msgs::Twist cmd_vel;
-
-    ros::Subscriber front_sonar_sub = n.subscribe("/range_front", 1000, Front_Sonar_Callback);
-    ros::Subscriber left_sonar_sub = n.subscribe("/range_front_left", 1000, Left_Sonar_Callback);
-    ros::Subscriber right_sonar_sub = n.subscribe("/range_front_right", 1000, Right_Sonar_Callback);
-    ros::Subscriber imu_control_sub = n.subscribe("/imu", 1000, imu1Callback);
-    ros::Subscriber tsl1401cl_sub = n.subscribe("/tsl1401cl", 10, tsl1401cl_Callback);
-
-    ros::Publisher sonar_cmd_vel_pub = n.advertise<geometry_msgs::Twist>("/ackermann_steering_controller/cmd_vel", 1000);
+    
+    double kp_line = 0.15;
+    double ki_line = 0.0;
+    double kd_line = 0.1;
+    
+    double kp_yaw = 0.02;
+    double kd_yaw = 0.3;
+    double ki_yaw = 0.0;
+    
+    double kp_yaw2 = 0.03;
+    double kd_yaw2 = 0.5;
+    double ki_yaw2 = 0.0;
+    
+    double kp_wall = 0.35;
+    double kd_wall = 0.35;
+    double ki_wall = 0.0;
+    
+    double target_yaw_degree = 0.0;//원하는 각도 입력
 
     ros::Rate loop_rate(30.0);
-
     while (ros::ok())
     {
         switch (mission_flag)
         {
         case 0:
-            if (find_line_center() == -1.0)
-            {
-                cmd_vel.linear.x = 0.0;
-                cmd_vel.angular.z = 0.0;
-            }
-            else
-            {
-                mission_flag++;
-            }
-            break;
+			if(find_line_center() == stop)
+			{
+				cmd_vel.linear.x = 0.0;
+				cmd_vel.angular.z = 0.0;
+			}
+			else
+			{
+				mission_flag++;
 
+			}
+            break;
         case 1:
-            if (find_line_center() != 0.0)
-            {
-                cmd_vel = PID_lane_control(Kp_lane, Ki_lane, Kd_lane);
-            }
-            if (find_line_center() == 0.0)
-            {
-                mission_flag++;
-            }
+			if(find_line_center() != stop && find_line_center() != Finish)
+			{
+				cmd_vel = lane_control(find_line_center(), kp_line, ki_line, kd_line);
+			}
+			else
+			{
+				mission_flag++;
+			}
             break;
-
         case 2:
-            if (front_sonar > 1.1)
-            {
-                cmd_vel.linear.x = 0.9;
-                cmd_vel.angular.z = 0.0;
-            }
-            else
-            {
-                target_yaw_degree = 270.0;
-                mission_flag++;
-            }
+			if(front_sonar > 1.0)
+			{
+				cmd_vel.linear.x = 0.4;
+				cmd_vel.angular.z = 0.0;
+			}
+			else
+			{
+				target_yaw_degree = 260.0;//원하는 각도 입력
+				mission_flag++;
+			}
             break;
-
         case 3:
-            cmd_vel = PID_yaw_control(Kp_yaw, Ki_yaw, Kd_yaw, target_yaw_degree);
+			cmd_vel = PID_yaw_control(kp_yaw, ki_yaw, kd_yaw, target_yaw_degree);
             break;
-
         case 4:
-            cmd_vel = PID_wall_following(Kp_wall, Ki_wall, Kd_wall);
-            if (front_sonar < 1.1)
-            {
-                target_yaw_degree = 180.0;
-                mission_flag++;
-            }
+			cmd_vel = WallFollowing(kp_wall, ki_wall, kd_wall);
+			if(front_sonar < 0.9)
+			{
+				target_yaw_degree = 175.0;//원하는 각도 입력
+				mission_flag++;
+			}
             break;
-
         case 5:
-            cmd_vel = PID_yaw_control(Kp_yaw, Ki_yaw, Kd_yaw, target_yaw_degree);
-            break;
-
-        case 6:
-            bool finish = true;
-            for (int i = 0; i < TSL1401CL_SIZE; i++)
-            {
-                if (LineSensor_threshold_Data[i] != 255)
-                {
-                    finish = false;
-                    break;
-                }
-            }
-
-            if (finish)
-            {
-                cmd_vel.linear.x = 0.0;
-                cmd_vel.angular.z = 0.0;
-            }
-            else
-            {
-                cmd_vel = PID_lane_control(Kp_lane, Ki_lane, Kd_lane);
-            }
-            break;
+			cmd_vel = PID_yaw_control(kp_yaw2, ki_yaw2, kd_yaw2, target_yaw_degree);
+			break;
+		case 6:
+			cmd_vel = lane_control(find_line_center(), kp_line, ki_line, kd_line);
+			if(find_line_center() == Finish)
+			{
+				cmd_vel.linear.x = 0.0;
+				cmd_vel.angular.z = 0.0;
+			}
+			break;
+			
         }
-
-        sonar_cmd_vel_pub.publish(cmd_vel);
-
+		cmd_vel_pub.publish(cmd_vel);
         ros::spinOnce();
         loop_rate.sleep();
         ++count;

@@ -1,32 +1,44 @@
-#include <ros/ros.h>
+#include "ros/ros.h"
+#include "std_msgs/Int8.h"
+#include "std_msgs/Float64.h"
+#include "geometry_msgs/Twist.h"
+#include "sensor_msgs/Range.h"
 #include <std_msgs/Float32MultiArray.h>
-#include <geometry_msgs/Twist.h>
 #include <math.h>
 
-#define TSL1401CL_SIZE 320
-#define THRESHOLD 0.01  
 #define DEG2RAD(x) (M_PI / 180.0) * x
 #define RAD2DEG(x) (180.0 / M_PI) * x
+
+///////////// CAMERA /////////////
+#define TSL1401CL_SIZE 320
+#define THRESHOLD 0.01
+#define Line_Center 147
+#define OFFSET 13
 
 double tsl1401cl_data[TSL1401CL_SIZE];
 int LineSensor_threshold_Data[TSL1401CL_SIZE];
 
-float Kp = 0.0015;
-float Ki = 0.0;
-float Kd = 0.005;
+double Kp_line;
+double Ki_line          = 0.0;
+double Kd_line          = 0.0;
+double Kp_curve_line    = 0.0;
+double control_speed_line;
 
-float Line_Center = TSL1401CL_SIZE / 2;  // Adjust this according to your sensor configuration
-float OFFSET = 0;
+std_msgs::Float64 centroid;
 
-float error = 0.0;
-float error_d = 0.0;
-float error_sum = 0.0;
-float error_old = 0.0;  // Add this line
-float Steering_Angle = 0.0;
+void control_speed_line_Callback(const std_msgs::Float64::ConstPtr &msg)
+{
+   control_speed_line = msg->data;
+}
+
+void Kp_line_Callback(const std_msgs::Float64::ConstPtr &msg)
+{
+   Kp_line = msg->data;
+}
 
 void threshold(double tsl1401cl_data[], int ThresholdData[], int tsl1401cl_size, double threshold)
 {
-    for (int i = 0; i < TSL1401CL_SIZE; i++)
+    for (int i = 0; i < tsl1401cl_size; i++)
     {
         if (tsl1401cl_data[i] > threshold)
         {
@@ -39,6 +51,27 @@ void threshold(double tsl1401cl_data[], int ThresholdData[], int tsl1401cl_size,
     }
 }
 
+double find_line_center()
+{
+    double mass_sum = 0.0;
+    centroid.data = 0.0;
+
+    for (int i = 0; i < TSL1401CL_SIZE; i++)
+    {
+        mass_sum += LineSensor_threshold_Data[i];
+        centroid.data += LineSensor_threshold_Data[i] * i;
+    }
+
+    if (mass_sum == 0)
+    {
+        mass_sum = 1.0;
+    }
+
+    centroid.data = centroid.data/ mass_sum;
+
+    return centroid.data;
+}
+
 void tsl1401cl_Callback(const std_msgs::Float32MultiArray::ConstPtr &msg)
 {
     for (int i = 0; i < TSL1401CL_SIZE; i++)
@@ -46,36 +79,39 @@ void tsl1401cl_Callback(const std_msgs::Float32MultiArray::ConstPtr &msg)
         tsl1401cl_data[i] = msg->data[i];
     }
     threshold(tsl1401cl_data, LineSensor_threshold_Data, TSL1401CL_SIZE, THRESHOLD);
-}
-
-int find_line_center()
-{
-    int centroid = 0;
-    int mass_sum = 0;
+    
+    printf("Threshold Data: \n");
 
     for (int i = 0; i < TSL1401CL_SIZE; i++)
     {
-        mass_sum += LineSensor_threshold_Data[i];
-        centroid += LineSensor_threshold_Data[i] * i;
+        printf("%d ", LineSensor_threshold_Data[i]);
     }
+    printf("\n");
 
-    centroid = (mass_sum != 0) ? centroid / mass_sum : 0;
-
-    return centroid;
+    double centroid = find_line_center();
+    printf("Line Centroid: %f\n", centroid);
 }
 
-void PID_lane_control(geometry_msgs::Twist &cmd_vel)
-{
-    double lineCenter = find_line_center();
-    
-    error = Line_Center - lineCenter + OFFSET;
-    error_sum += error;
-    error_d = error - error_old;
-    Steering_Angle = Kp * error + Ki * error_sum + Kd * error_d;
+double error_lane_old = 0.0;
 
-    cmd_vel.linear.x = 0.5;
-    cmd_vel.angular.z = Steering_Angle;
-    
+geometry_msgs::Twist PID_lane_control(double Kp_line, double Ki_line, double Kd_line)
+{
+    geometry_msgs::Twist cmd_vel;
+
+    double lineCenter = find_line_center();
+
+    double error_lane = Line_Center - lineCenter + OFFSET;
+    double error_lane_d = error_lane - error_lane_old;
+    double error_lane_sum = 0.0;
+
+    error_lane_sum += error_lane;
+
+    double steering_angle = Kp_line * error_lane + Ki_line * error_lane_sum + Kd_line * error_lane_d;
+
+    cmd_vel.linear.x = control_speed_line;
+    cmd_vel.angular.z = steering_angle;
+/*
+///////////// black ///////////// 
     bool recognize_X = true;
     
     for (int i = 0; i < TSL1401CL_SIZE; i++)
@@ -91,41 +127,72 @@ void PID_lane_control(geometry_msgs::Twist &cmd_vel)
     {
         cmd_vel.linear.x = 0.0;
         cmd_vel.angular.z = 0.0;
-        return;
+        return cmd_vel;
     }
-    error_old = error; 
+/*    
+///////////// white ///////////// 
+    bool finish = true;
+    
+    for (int i = 0; i < TSL1401CL_SIZE; i++)
+    {
+        if (LineSensor_threshold_Data[i] != 255)
+        {
+         finish = false;
+         break;
+      }
+    }
+
+    if (finish)
+    {
+      cmd_vel.linear.x = 0.0;
+      cmd_vel.angular.z = 0.0;
+    }
+    else
+    {
+        cmd_vel = PID_lane_control(Kp_curve_line, Ki_line, Kd_line);
+    }
+*/
+    error_lane_old = error_lane;
+
+    return cmd_vel;
 }
 
 int main(int argc, char **argv)
 {
     int count = 0;
 
-    geometry_msgs::Twist cmd_vel;
-
     ros::init(argc, argv, "line_control");
     ros::NodeHandle nh;
+    
+    std::string line_topic                   = "/tsl1401cl";
+    std::string line_cmd_vel_topic             = "/cmd_vel/line";
+    std::string line_centroid_topic            = "/line_centroid";
+    std::string control_speed_line_topic      = "/control_speed/line";
+    std::string Kp_line_topic               = "/Kp_line";
+    
+    ros::param::get("~line_topic",line_topic);
+    ros::param::get("~line_cmd_vel_topic",line_cmd_vel_topic);
+    ros::param::get("~line_centroid_topic",  line_centroid_topic);
+   ros::param::get("~control_speed_line_topic", control_speed_line_topic);
 
-    ros::Subscriber tsl1401cl_sub = nh.subscribe("/tsl1401cl", 10, tsl1401cl_Callback);
-    ros::Publisher tst1401cl_cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("/ackermann_steering_controller/cmd_vel", 1000);
+    ros::param::get("~Kp_line_topic", Kp_line_topic);  
+   ros::param::get("~Ki_line", Ki_line);  
+   ros::param::get("~Kd_line", Kd_line);
+   
+   ros::Subscriber sub_control_speed_line = nh.subscribe(control_speed_line_topic, 1, control_speed_line_Callback);
+   ros::Subscriber sub_Kp_line = nh.subscribe(Kp_line_topic, 1, Kp_line_Callback);
+   ros::Subscriber line_control_sub = nh.subscribe(line_topic, 1, tsl1401cl_Callback);
+    ros::Publisher line_cmd_vel_pub = nh.advertise<geometry_msgs::Twist>(line_cmd_vel_topic, 1);
+    ros::Publisher pub_line_centroid = nh.advertise<std_msgs::Float64>(line_centroid_topic, 1);
 
     ros::Rate loop_rate(30.0);
+
     while (ros::ok())
     {
-        printf("Threshold Data: \n");
-        
-        for (int i = 0; i < TSL1401CL_SIZE; i++)
-        {
-            printf("%d ", LineSensor_threshold_Data[i]);
-        }
-        printf("\n");
-
-        double centroid = find_line_center();
-        printf("Line Centroid: %f\n", centroid);
-
-        PID_lane_control(cmd_vel);
-
-        tst1401cl_cmd_vel_pub.publish(cmd_vel);
-
+        geometry_msgs::Twist cmd_vel_line = PID_lane_control(Kp_line, Ki_line, Kd_line);
+     
+        line_cmd_vel_pub.publish(cmd_vel_line);
+        pub_line_centroid.publish(centroid);
         ros::spinOnce();
         loop_rate.sleep();
         ++count;

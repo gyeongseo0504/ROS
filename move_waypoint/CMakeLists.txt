@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(yaw_control)
+project(move_waypoint)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,10 +8,21 @@ project(yaw_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
   roscpp
   rospy
   sensor_msgs
   std_msgs
+  message_generation
+)
+
+add_message_files(
+	FILES
+	Target_waypoint_line.msg
+)
+
+generate_messages(
+	DEPENDENCIES geometry_msgs
 )
 
 ###################################
@@ -25,8 +36,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES yaw_control
-  CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs
+#  LIBRARIES move_waypoint
+  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs message_runtime
   DEPENDS system_lib
 )
 
@@ -41,6 +52,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(yaw_control_node_node src/yaw_control_node.cpp)
-add_dependencies(yaw_control_node_node ${yaw_control_node_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(yaw_control_node_node ${catkin_LIBRARIES} )
+add_executable(move_waypoint_node_node src/move_waypoint_node.cpp)
+add_dependencies(move_waypoint_node_node ${move_waypoint_node_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(move_waypoint_node_node ${catkin_LIBRARIES} )

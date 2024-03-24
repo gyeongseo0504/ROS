@@ -26,9 +26,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES Pioneer_sim
-#  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs
-#  DEPENDS system_lib
+#  LIBRARIES Pioneer
+  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs
+  DEPENDS system_lib
 )
 
 ###########
@@ -41,6 +41,7 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
 )
-add_executable(pioneer_node src/pioneer_node.cpp)
-add_dependencies(pioneer_node ${pioneer_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(pioneer_node ${catkin_LIBRARIES})
+
+add_executable(pioneer_node_node src/pioneer_node.cpp)
+add_dependencies(pioneer_node_node ${pioneer_node_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(pioneer_node_node ${catkin_LIBRARIES} )

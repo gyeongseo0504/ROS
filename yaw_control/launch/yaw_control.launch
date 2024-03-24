@@ -1,0 +1,15 @@
+<launch>
+   <node pkg = "yaw_control"   type = "yaw_control_node_node"   name = "yaw_control_node" output = "screen">
+   
+   <param name = "yaw_topic"       type = "string"   value = "/imu"/>
+   <param name = "target_yaw/degree"  type = "string"   value = "/target_yaw/degree"/>
+   <param name = "yaw_cmd_vel_topic"  type = "string"   value = "/cmd_vel/yaw"/>
+   <param name = "control_speed/yaw"  type = "string"   value = "/control_speed/yaw"/>
+   <param name = "yaw_degree"  type = "string"   value = "yaw_degree"/>
+   <param name ="Kp_yaw" type="double" value="0.02"/>
+   <param name ="Ki_yaw" type="double" value="0.0"/>
+   <param name ="Kd_yaw" type="double" value="0.5"/>
+       
+       
+   </node>
+</launch>

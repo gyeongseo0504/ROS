@@ -1,0 +1,12 @@
+<launch>
+    <node pkg = "line_control" type = "line_control_node" name = "line_control" output="screen">
+		<param name = "camera_topic"	type = "string"	value = "/tsl1401cl"/>
+		<param name = "control_speed/line"  type = "string"	value = "/control_speed/line"/>
+		<param name = "line_cmd_vel_topic"  type = "string"	value = "/cmd_vel/line"/>
+		<param name = "line_centroid_topic"  type = "string"	value = "/line_centroid"/>
+		<param name = "Kp_line_topic"  type = "string"	value = "/Kp_line"/>
+        <param name = "Kp" type = "double" value = "0.3"/>
+        <param name = "Ki" type = "double" value = "0.0"/>
+        <param name = "Kd" type = "double" value = "0.1"/>
+    </node>
+</launch>

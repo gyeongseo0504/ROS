@@ -9,8 +9,34 @@
 #define RAD2DEG(x) (180.0 / M_PI) * x
 
 double roll, pitch, yaw;
+double error_old = 0.0;
+double target_yaw_degree;
+double control_speed_yaw;
 
-void imu1Callback(const sensor_msgs::Imu::ConstPtr& msg) 
+double Kp_yaw = 0.0;
+double Ki_yaw = 0.0;
+double Kd_yaw = 0.0;
+
+double error;
+double yaw_d_tf_correction = 90;
+
+std_msgs::Float64 yaw_deg;
+
+double normalizeYaw(double yaw_deg)
+{
+    if (yaw_deg > 360)
+    {
+        yaw_deg = yaw_deg - 360;
+    }
+    else if (yaw_deg < 0)
+    {
+        yaw_deg = yaw_deg + 360;
+    }
+
+    return yaw_deg;
+}
+
+void imu1Callback(const sensor_msgs::Imu::ConstPtr &msg)
 {
     tf2::Quaternion q(
         msg->orientation.x,
@@ -18,59 +44,113 @@ void imu1Callback(const sensor_msgs::Imu::ConstPtr& msg)
         msg->orientation.z,
         msg->orientation.w);
 
-    tf2::Matrix3x3 m(q);      
-
+    tf2::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
-    
-    double yaw_degree = yaw * 180.0 / M_PI; // Pitch, Roll, Yaw 중 yaw는 헤딩 앵글 좌우를 움직여 쓴다
-    
-    if (yaw_degree > 360) // 0도~ 360도 값을 갖도록 함
+
+    double yaw_deg_value = normalizeYaw(RAD2DEG(yaw));
+
+    yaw_deg.data = yaw_deg_value;
+}
+
+
+void target_yaw_degree_Callback(const std_msgs::Float64::ConstPtr &msg)
+{
+   target_yaw_degree = msg->data;
+}
+
+void control_speed_yaw_Callback(const std_msgs::Float64::ConstPtr &msg)
+{
+   control_speed_yaw = msg->data;
+}
+
+geometry_msgs::Twist PID_yaw_control(double Kp_yaw, double Ki_yaw, double Kd_yaw)
+{
+    geometry_msgs::Twist cmd_vel;
+
+    double yaw_deg = RAD2DEG(yaw);
+    yaw_deg = normalizeYaw(yaw_deg);
+
+    error = target_yaw_degree + yaw_d_tf_correction - yaw_deg;
+    //error = target_yaw_degree - yaw_deg;
+
+    if (error > 180)
     {
-        yaw_degree = yaw_degree - 360; // 360보다 크면 360을 빼서 360이하로 값을 나오게 함
+        error = error - 360;
     }
-    else if (yaw_degree < 0)
+    else if (error < -180)
     {
-        yaw_degree = yaw_degree + 360;
+        error = error + 360;
     }
 
-    ROS_INFO("Yaw Degree: %.2f", yaw_degree);
+    double error_sum = 0.0;
+    double error_d = error - error_old;
+
+    error_sum += error;
+
+    double Steering_Angle = Kp_yaw * error + Ki_yaw * error_sum + Kd_yaw * error_d;
+
+    cmd_vel.linear.x = control_speed_yaw;
+    cmd_vel.angular.z = Steering_Angle;
+/*
+    if (fabs(error) < 0.5)
+    {
+        cmd_vel.linear.x = 0.0;
+        cmd_vel.angular.z = 0.0;
+    }
+*/   
+    error_old = error;
+
+    return cmd_vel;
 }
-	void PID_control(geometry_msgs::Twist &cmd_vel)
-{
-	double Kp = 0.5
-	double Ki = 0.01
-	double Kd = 0.25
-	
-	
-	double yaw_heading_degree = 0.0;
-	double error_old = 0.0;
-	
-	double error = yaw_heading_degree - yaw_degree;//원하는 각도 와 현재 각도의 오차값
-	double error_d = error - error_old;// 현재 오차와 이전 오차를 비교하여 현재 오차의 변화율을 계산
-    double error_sum = error + error_old; //누적 오차를 나타내는 적분 값
-    
-    double steering_angle = Kp * error + Ki * error_sum + Kd * error_d;//pid 값
-	
-	geometry_msgs::Twist cmd_vel;
-    cmd_vel.angular.z = steering_angle;
-	
-	return cmd_vel;
-}
+
 int main(int argc, char **argv)
 {
     int count = 0;
-	
+
     ros::init(argc, argv, "yaw_control");
     ros::NodeHandle n;
-    ros::Subscriber yaw_control_sub = n.subscribe("/imu", 1000, imu1Callback);
-    ros::Rate loop_rate(20.0);
+    
+    std::string imu_topic                = "/imu";
+    std::string target_yaw_degree_topic    = "/target_yaw/degree";
+    std::string yaw_cmd_vel_topic          = "/cmd_vel/yaw";
+    std::string control_speed_yaw_topic    = "/control_speed/yaw";
+    std::string yaw_degree_topic          = "/yaw_degree";
+    
+   ros::param::get("~imu_topic",               imu_topic);
+   ros::param::get("~target_yaw_degree_topic",      target_yaw_degree_topic);
+    ros::param::get("~yaw_cmd_vel_topic",         yaw_cmd_vel_topic);
+    ros::param::get("~control_speed_yaw_topic",      control_speed_yaw_topic);
+   ros::param::get("~Kp_yaw",                   Kp_yaw);  
+   ros::param::get("~Kd_yaw",                   Kd_yaw);  
+   ros::param::get("~Ki_yaw",                   Ki_yaw);
+   ros::param::get("~yaw_d_tf_correction",       yaw_d_tf_correction);
+    ros::param::get("~target_yaw_degree",          target_yaw_degree);
+    ros::param::get("~yaw_degree_topic",          yaw_degree_topic);
+
+    ros::Subscriber sub_target_yaw_degree   = n.subscribe(target_yaw_degree_topic, 1, target_yaw_degree_Callback);
+    ros::Subscriber sub_imu                = n.subscribe(imu_topic, 1, imu1Callback);
+    ros::Subscriber sub_control_speed_yaw_    = n.subscribe(control_speed_yaw_topic, 1, control_speed_yaw_Callback);
+    ros::Publisher pub_yaw_cmd_vel          = n.advertise<geometry_msgs::Twist>(yaw_cmd_vel_topic, 1);
+    ros::Publisher pub_yaw_degree          = n.advertise<std_msgs::Float64>(yaw_degree_topic, 1);
+
+    ros::Rate loop_rate(30.0);
 
     while (ros::ok())
     {
+
+        geometry_msgs::Twist cmd_vel_yaw = PID_yaw_control(Kp_yaw, Ki_yaw, Kd_yaw);
+            
+      printf("yaw = %.2f\n", yaw_deg.data);
+      printf("target_yaw_degree = %.2lf\n", target_yaw_degree);
+      printf("error = %.2lf\n",error);
+      printf("speed = %.2lf\n\n",control_speed_yaw);
+        
+        pub_yaw_cmd_vel.publish(cmd_vel_yaw);
+        pub_yaw_degree.publish(yaw_deg);
+        
         ros::spinOnce();
         loop_rate.sleep();
         ++count;
     }
-
     return 0;
 }

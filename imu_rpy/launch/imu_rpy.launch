@@ -1,0 +1,11 @@
+<launch>
+
+	<node pkg = "imu_rpy" type = "imu_rpy" name = "imu_rpy" output = "screen">
+	
+    <param name = "imu_topic" 				type = "string"      value = "/handsfree/imu"/>      
+    <param name = "mag_topic" 				type = "string"      value = "/handsfree/mag"/>      
+	
+	</node>
+	
+</launch>
+

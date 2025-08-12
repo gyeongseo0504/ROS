@@ -1,0 +1,28 @@
+<launch>
+
+   <!-- <node pkg="ros_lane_control" type = "vision_xte_offset.py" name = "vision_xte_offset.py" output="screen"/> -->
+	 <node pkg="ros_lane_control" type = "ros_lane_control_node" name = "ros_lane_control_node" output="screen">
+	
+		
+		<param name= "input_image_topic"                  type = "string"          value = "/usb_cam/image_raw"/>     <!-- image topic -->
+		<param name= "img_width"                          type = "int"             value = "640"/>                    <!-- image size height -->
+		<param name= "img_height"                         type = "int"             value = "480"/>                    <!-- image size widht -->        
+		<param name= "lane_width"                         type = "double"          value = "530"/>
+		
+		<param name= "ROI_CENTER_Y"                       type = "int"             value = "300"/>                    <!-- ROI center locaton 300세팅 -->          
+		<param name= "ROI_WIDTH"                          type = "int"             value =  "40"/>                    <!-- ROI height size -->  
+		
+		<param name= "perspective_upper"                  type = "int"             value =  "200"/>                   <!-- bird eye roi upper value -->
+		<param name= "perspective_lower"                  type = "int"             value =  "319"/>                   <!-- bird eye roi lower value -->      
+		
+		<param name= "canney_low"                         type = "int"             value =  "90"/>                    <!-- canney edeg parameter -->
+		<param name= "canney_high"                        type = "int"             value =  "170"/>   
+		
+		<param name= "cmd_vel_vision_output_topic"        type = "string"          value = "/cmd_vel/vision"/> 
+		
+       
+		<param name= "vision_xte_topic"                   type = "string"          value = "/vision_xte"/>
+		<param name= "vision_xte_offset_topic"            type = "string"          value = "/vision_xte_offset"/> 
+		
+	</node>   
+</launch>

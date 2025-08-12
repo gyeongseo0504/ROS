@@ -1,0 +1,16 @@
+<launch>
+    <node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.1 0 0 0 base_footprint base_link 10"/>
+    <!--    <node pkg="tf" type="static_transform_publisher" name="base_scan_base_link_tf" args= "0.5 0.0 0.0.8 0.0 0.0 0.0  base_link base_scan 10" /> -->
+    <node pkg="lidar_obstacle_new_waypoint" type="lidar_obstacle_new_waypoint_node" name="lidar_obstacle_new_waypoint_node" output="screen">
+             
+    
+       <param name = "LIDAR_Obstacle_angle"    type = "int"      value="10"/>
+       <param name = "LIDAR_Obstacle_distance" type = "double"   value="4.00"/> 
+       <param name = "LIDAR_Rotation_CCW"      type = "bool"     value="1"/> 
+       <param name = "Robot_Width"             type = "double"   value="0.4"/> 
+       <param name = "Robot_Width_Tolerance"   type = "double"   value="0.2"/> 
+   
+   </node>
+
+
+</launch>

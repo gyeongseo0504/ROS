@@ -1,0 +1,22 @@
+<launch>
+
+	<node pkg="car_yaw_control" type="car_yaw_control_traffic_cone_node" name="car_yaw_control_traffic_cone_node" output="screen">
+	
+		<param name= "use_imu"                                type = "bool"                value = "true"/>
+		<param name= "yaw_control_steering_output_topic"      type = "string"              value = "/Car_Control_Cmd/steering_control_mode"/>  
+		<param name= "imu_yaw_angle_topic"                    type = "string"              value = "/robor/imu/yaw_radian"/>		
+		
+		<param name= "yaw_control_mode_topic"                 type = "string"              value = "/Car_Control_Cmd/steering_control_mode"/>   
+		
+		<param name= "yaw_target_topic"                       type = "string"              value = "/Car_Control_Cmd/Target_Angle"/>	    
+		<param name= "traffic_cone_yaw_target_topic"          type = "string"              value = "/traffic_cone/heading_angle" />
+	    
+		<param name= "yaw_control_steering_output_topic"      type = "string"              value = "/Car_Control_Cmd/steerAngle_Int16"/> 
+						
+		<param name= "Kp_traffic_cone"                        type = "double"              value = "0.8"/>
+		<param name= "Kd_traffic_cone"                        type = "double"              value = "3.0"/>
+		<param name= "Ki_traffic_cone"                        type = "double"              value = "0.0"/>
+		
+		
+	</node>
+</launch>

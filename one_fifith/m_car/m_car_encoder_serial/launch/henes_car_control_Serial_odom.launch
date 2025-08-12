@@ -1,0 +1,33 @@
+<launch>
+   
+  <!--node pkg="tf" type="static_transform_publisher" name="utm" args="0 0 0 0 0 0 utm map 10" /-->
+  <!--node pkg="tf" type="static_transform_publisher" name="odom_broadcaster" args="0 0 0 0 0 0 map odom 10" /-->
+  <!--node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster" args="0 0 0.02 0 0 0 base_footprint base_link 10" /-->
+  <!--<node pkg="tf" type="static_transform_publisher" name="sonar_broadcaster" args="0.2 0 0 0 0 0 base_link sonar_range 10" />-->
+   
+  <!-- 
+  <node pkg="m_car_base_control" type="teleop2.py" name="teleop_node" />
+   -->
+
+    
+  <!-- include file="$(find handsfree_ros_imu)/launch/handsfree_imu.launch" /-->
+    
+  <node pkg="m_car_encoder_serial" type="henes_car_control_serial_node" name="henes_base_control_node" output="screen">
+        
+		<param name="m_acceleration"              type = "double"                value="1.0"/>
+		<param name="m_deceleration"              type = "double"                value="0.8"/>
+		
+		<param name="s_acceleration"              type = "double"                value="100"/>
+		<param name="s_deceleration"              type = "double"                value="100"/>
+		
+		<param name="imu_yaw_offset_angle_topic"  type="string"                  value = "/imu/yaw_offset_degree"/>
+
+  </node> 
+  
+  <!-- pathrviz -->
+  <node pkg="m_car_encoder_serial" type="encoder_odom_path_node.py" name="encoder_path_node">
+  </node>
+    
+    
+</launch>
+    

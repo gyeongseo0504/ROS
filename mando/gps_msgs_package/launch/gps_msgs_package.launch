@@ -1,0 +1,22 @@
+<launch> 
+
+
+  <node name="gps_msgs_package_node" pkg="gps_msgs_package" type="gps_msgs_package_node" output="screen" > 
+     
+     <!-- imu angle을 사용할 때에는 1로 할 것 -->
+          <param name="use_imu_yaw_angle"                                          value="1"/>       
+          <param name ="imu_heading_angle_radian_topic"                            value="/imu/heading_angle_radian"/>     <!-- gps_imu_link에서 계산되어서 나옴 -->
+          
+          
+     <!-- GPS 2개 사용할때 1로 할 것 -->
+          <param name="use_two_gps"                                                value="1"/>
+      
+     <!--  Front no 1--> 
+     <!--<remap from="/gps1/fix"     to="/ublox_gps/fix" />  -->      
+     <!--<remap from="/gps1/fix"     to="/gps/fix_front" /> --> 
+      
+     <!--  Rear no 2--> 
+     <!--<remap from="/gps2/fix"     to="/ublox_gps2/fix" />  -->
+     <!--<remap from="/gps2/fix"     to="/gps/fix_rear" /> -->
+  </node>
+</launch> 

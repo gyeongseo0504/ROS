@@ -1,0 +1,15 @@
+<!--imu ros 驱动-->
+<launch>
+    <!-- base_link to  imu_link trasnform a9 -->
+   
+   // <node pkg="tf" type="static_transform_publisher" name="base_footprint_base_link_tf" args= "0.0 0.0 0.3 0.0 0.0 0.0 base_footprint base_link 100" />
+    <node pkg="tf" type="static_transform_publisher" name="baeslink2imu_tf" args= "0.0 0.0 0.2 0.0 0.0 0.0 base_link imu_link 100" />
+
+    <!-- imu型号，默认 a9 -->
+    <arg name="imu_type" default="a9" doc="model type [a9, b9, b6 ,d6]"/>
+
+    <!-- imu 对应 python 文件 output="screen"-->
+    <node pkg="handsfree_ros_imu" type="hfi_$(arg imu_type)_ros_new.py" name="imu_$(arg imu_type)_new" >
+    </node>
+</launch>
+

@@ -1,0 +1,15 @@
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="map_utm_tf"  args= "0.0 0.0 0.0 -1.570795 0.0 0.0 map utm 10" />
+
+	<node pkg="waypoints_rviz_display" type="waypoints_rviz_display_node" name="waypoints_rviz_display_node" output="screen">
+		<param name="use_gps_init_datum" type="bool" value="false" />    
+		<!-- <param name="waypoint_file_name" type="string" value="/home/amap/one_fifth_catkin_ws/waypoints/w.txt"/> -->
+		<!-- <param name="waypoint_file_name" type="string" value="/home/amap/one_fifth_catkin_ws/waypoints/T_park.txt" />-->
+		<!-- <param name="waypoint_file_name" type="string" value="/home/amap/one_fifth_catkin_ws/waypoints/parking.txt" />-->
+		<param name="waypoint_file_name" type="string" value="/home/kyeongseo/one_fifth_catkin_ws/waypoints/r.txt" />
+		<!-- datum topic use : 0 -->
+		<!-- <rosparam param="gps_init_datum">[37.2392290473004 , 126.773139238358]</rosparam> --> <!-- kcity -->
+		<rosparam param="gps_init_datum">[37.28899399530732,127.1075637638569]</rosparam>
+		<!-- datum topic use : 1 -->
+	</node>	
+</launch>

@@ -1,0 +1,55 @@
+<launch>
+    
+    
+	<!-- Static Transform -->   
+		
+	<node pkg="tf" type="static_transform_publisher" name="base_footprint_base_link_tf" args= "0.0 0.0 0.5 0.0 0.0 0.0 base_footprint base_link 20" />
+
+	<!-- GPS datum 입력 -->      
+
+	<!--<include file="$(find gps_datum_pub)/launch/gps_datum.launch"/>-->
+
+
+	<!-- Ublox F9P GPS bringup launch GPS 관련한 package를 여기에 넣으세요 -->      
+	<!-- GPS data publishing launch -->
+
+	  
+	<!-- imu A9 launch -->
+
+
+	<!-- GPS dataum publishing launch -->
+		<include file="$(find gps_datum_pub)/launch/gps_datum.launch"/>
+
+
+	<!-- GPS data publishing launch -->
+		<include file="$(find gps_msgs_package)/launch/gps_msgs_package.launch"/>
+		
+		
+	<!-- GPS odom data publishing launch -->
+		<include file="$(find utm_to_odom)/launch/utm_odom.launch"/>
+			
+	
+	<!-- GPS waypoint display launch -->
+		<include file="$(find waypoints_rviz_display)/launch/waypoints_display.launch"/>
+
+	<!-- 加载 rviz -->
+
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find waypoints_rviz_display)/rviz/waypoint_display.rviz"/>
+	<!-- pathrviz -->
+	
+	<node pkg="waypoint_rviz_display" type="utm_odom_path_node.py" name="utm_odom_path_node"/>
+
+</launch>
+
+<!--
+
+    <include file="$(find gps_datum_pub)/launch/gps_datum.launch"/>
+
+    <include file="$(find gps_msgs_package)/launch/gps_msgs_package.launch"/>
+   
+    <include file="$(find utm_to_odom)/launch/gps_odom.launch"/>
+
+    <node pkg="waypoint_rviz_display" type="utm_odom_path_node.py" name="utm_odom_path_node">
+    </node>
+ 
+-->

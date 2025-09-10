@@ -1,0 +1,43 @@
+<launch> 
+
+<!-- Arguments --> 
+  <arg name="map_file" default="$(find move_nav)/maps/blank_map.yaml"/>-->
+
+  <!-- Map server -->
+    <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+    
+    
+ 
+  
+  <!-- AMCL -->
+   <!--  <include file="$(find kobuki_nav)/launch/kobuki_amcl.launch"/>-->
+  
+<!-- Arguments -->
+  <arg name="set_base_frame" default="base_footprint"/>
+  <arg name="set_odom_frame" default="odom"/>
+  <arg name="set_map_frame"  default="map"/>
+
+
+<!-- move_base-->
+<arg name="cmd_vel_topic" default="/mobile_base/commands/velocity" />
+<arg name="odom_topic" default="/odom/utm" />
+<arg name="move_forward_only" default="true"/>
+  
+
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <param name="base_global_planner" value="navfn/NavfnROS" />
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+
+    <rosparam file="$(find move_nav)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find move_nav)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find move_nav)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find move_nav)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find move_nav)/param/move_base_params.yaml" command="load" />
+    <rosparam file="$(find move_nav)/param/local_planner_params.yaml" command="load" />
+    <rosparam file="$(find move_nav)/param/recovery_behaviors.yaml" command="load" />
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
+    <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+  </node>
+
+</launch>

@@ -1,0 +1,48 @@
+<launch>
+    
+    
+	<!-- Static Transform -->   
+		
+	<node pkg="tf" type="static_transform_publisher" name="base_footprint_base_link_tf" args= "0.0 0.0 0.5 0.0 0.0 0.0 base_footprint base_link 20" />
+
+	<!--<node pkg="tf" type="static_transform_publisher" name="map_odom_tf" args= "0.0 0.0 0.0 1.570795 0.0 0.0 map odom 10" />--><!--시뮬레이션-->
+	<!--<node pkg="tf" type="static_transform_publisher" name="map_odom_tf" args= "0.0 0.0 0.0      0.0 0.0 0.0 map odom 10" />  -->
+
+
+	<!-- Ublox F9P GPS bringup launch GPS 관련한 package를 여기에 넣으세요 -->      
+
+	  
+	<!-- imu A9 launch -->
+
+	<!-- GPS dataum publishing launch -->
+		<include file="$(find gps_datum_pub)/launch/gps_datum.launch"/>
+
+	<!-- GPS data publishing launch -->
+		<include file="$(find gps_msgs_package)/launch/gps_msgs_package.launch"/>
+		
+	<!-- GPS odom data publishing launch -->
+
+		<include file="$(find utm_to_odom)/launch/utm_odom.launch"/>
+			
+	<!-- GPS waypoint display launch -->
+		<include file="$(find waypoints_rviz_display)/launch/waypoints_display.launch"/>
+
+	<!-- 加载 rviz -->
+
+		<node name="rviz" pkg="rviz" type="rviz" args="-d $(find waypoints_rviz_display)/rviz/waypoint_display.rviz">
+
+	</node>
+	<!-- pathrviz -->
+		<node pkg="waypoint_rviz_display" type="utm_odom_path_node.py" name="utm_odom_path_node">
+	
+	</node>
+
+</launch>
+
+<!-- 
+<node pkg="tf" type="static_transform_publisher" name="map_odom_tf" args= "0.0 0.0 0.0 1.570795 0.0 0.0 map odom 10" />
+    <include file="$(find geonav_transform)/launch/geonav_transform.launch"/>
+    <node pkg="tf" type="static_transform_publisher" name="gps1foot2baselink_tf" args= "0.0 0.0 0.0 0 0.0 0.0 gps1_footprint odom 10" />
+    <node pkg="tf" type="static_transform_publisher" name="gps1foot2baselink_tf" args= "0.0 0.0 0.0 1.570795 0.0 1.570795 base_link  gps1_footprint 10" />
+    <include file="$(find iahrs_driver)/launch/iahrs_driver.launch"/>
+--> 

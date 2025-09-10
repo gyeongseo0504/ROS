@@ -1,0 +1,87 @@
+DWAPlannerROS:
+
+# Robot Configuration Parameters
+  max_vel_x: 0.6 #0.22
+  min_vel_x: -0.2 #-0.22
+
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+
+# The velocity when robot is moving in a straight line
+  max_vel_trans:  0.5 #0.22
+  min_vel_trans:  0.1 #0.11
+
+  max_rot_vel: 1.0 #max_vel_theta: 2.75
+  min_rot_vel: 0.4 #min_vel_theta: 1.37
+
+  acc_lim_x: 2.5
+  acc_lim_y: 0.0
+  acc_lim_th: 3.2 #acc_lim_theta: 3.2
+
+# Goal Tolerance Parametes
+  xy_goal_tolerance: 0.1
+  yaw_goal_tolerance: 0.1
+  latch_xy_goal_tolerance: false
+
+# Forward Simulation Parameters
+  sim_time: 4 #1.5
+  vx_samples: 20
+  vy_samples: 0
+  vth_samples: 40
+  controller_frequency: 10.0
+
+# Trajectory Scoring Parameters
+  path_distance_bias: 32.0
+  goal_distance_bias: 20.0
+  occdist_scale: 0.02 #0.02
+  forward_point_distance: 0.325
+  stop_time_buffer: 0.2
+  scaling_speed: 0.25
+  max_scaling_factor: 0.2
+
+# Oscillation Prevention Parameters
+  oscillation_reset_dist: 0.05
+
+# Debugging
+  publish_traj_pc : true
+  publish_cost_grid_pc: true
+
+
+
+# steer bot recovery behavior
+# Add the following parameters to planner.yaml 
+# (file containing NavfanROS and TrajectoryPlannerROS settings)
+recovery_behaviour_enabled: true
+
+recovery_behaviors:
+  - {name: conservative_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+  - {name: stepback_and_steerturn_recovery, type: stepback_and_steerturn_recovery/StepBackAndSteerTurnRecovery}
+  - {name: aggressive_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+
+stepback_and_steerturn_recovery:
+  # True if you want to turn only the first time
+  only_single_steering: true
+  # Number of recovery action attempts [times]
+  trial_times         : 3
+  #Allowable distance to obstacle [m].
+  #--While moving, if an obstacle closest to the direction of movement appears within this distance, it will stop.
+  obstacle_patience   : 0.3
+  # --Frequency of checking obstacles while moving [times / sec]
+  obstacle_check_frequency: 5.0
+  # Angle resolution when searching for obstacles [rad] costmap Adjust when you want to reduce the number of accesses.
+  sim_angle_resolution: 0.1
+  # Sim update cycle when searching for obstacles [times / sec] costmap Adjust when you want to reduce the number of access.
+  simulation_frequency    : 5
+  # back (speed at first retreat [m / s], distance traveled [m], timeout [sec])
+  linear_vel_back     : -0.3
+  step_back_length    : 1.0
+  step_back_timeout   : 15.0
+  # steer (speed when turning [rad / s] and target rotation angle [rad], timeout [sec])
+  linear_vel_steer    : 0.3
+  angular_speed_steer : 0.5
+  turn_angle          : 1.5
+  steering_timeout    : 15.0
+  #forward (turn → straight → turn straight speed [m / s] and target movement distance [m], timeout [sec])
+  linear_vel_forward  : 0.3
+  step_forward_length : 1.0
+  step_forward_timeout: 15.0

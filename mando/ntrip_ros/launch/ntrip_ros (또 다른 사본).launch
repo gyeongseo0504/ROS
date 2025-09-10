@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <node pkg="ntrip_ros" type="ntripclient.py" name="ntrip_ros" output="screen">
+ 	 <param name="rtcm_topic" value="/ublox_gps/rtcm"/> <!--rtcm 토픽-->
+ 	 <param name="ntrip_server" value="RTS1.ngii.go.kr:2101"/> <!--접속경로:포트-->
+ 	 <param name="ntrip_user" value="aMAP1234"/> <!--아이디-->
+ 	 <param name="ntrip_pass" value="ngii"/>
+ 	 <param name="ntrip_stream" value="RTK-RTCM32"/> <!--마운트포인트-->
+ 	 <param name="nmea_gga" value="$GPGGA,035915.456,3549.487,N,12845.199,E,1,12,1.0,0.0,M,0.0,M,,*69"/>
+  </node>
+</launch>
+
+<!--param name="nmea_gga" value="$GPGGA,100615.067,3718.217,N,12754.390,E,1,12,1.0,0.0,M,0.0,M,,*6A"/-->
+

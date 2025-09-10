@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <node pkg="ntrip_ros" type="ntripclient.py" name="ntrip_ros" output="screen">
+ 	 <param name="rtcm_topic" value="/gps/rtcm"/> <!--rtcm 토픽-->
+ 	 <param name="ntrip_server" value="RTS1.ngii.go.kr:2101"/> <!--접속경로:포트-->
+ 	 <param name="ntrip_user" value="gangseo04"/> <!--아이디-->
+ 	 <param name="ntrip_pass" value="ngii"/>
+ 	 <param name="ntrip_stream" value="RTK-RTCM32"/> <!--마운트포인트-->
+<!-- 	 <param name="nmea_gga" value="$GPGGA,052143.116,3718.231,N,12754.431,E,1,12,1.0,0.0,M,0.0,M,,*67"/> -->
+<!--    <param name="nmea_gga" value="$GPGGA,025342.785,3549.427,N,12845.169,E,1,12,1.0,0.0,M,0.0,M,,*68"/> -->
+<!--   	<param name="nmea_gga" value="$GPGGA,085450.239,3718.232,N,12754.432,E,1,12,1.0,0.0,M,0.0,M,,*64"/> <!-- 한라대 -->
+<!--    <param name="nmea_gga" value="$GPGGA,103542.598,3718.228,N,12754.443,E,1,12,1.0,0.0,M,0.0,M,,*68"/> -->
+	 <param name="nmea_gga" value="$GPGGA,023914.175,3717.340,N,12706.454,E,1,12,1.0,0.0,M,0.0,M,,*62"/>
+<!-- 청남대	 <param name="nmea_gga" value="$$GPGGA,030345.994,3627.675,N,12729.411,E,1,12,1.0,0.0,M,0.0,M,,*64"/> -->
+  </node>
+</launch>
+
+<!--   param name="nmea_gga" value="$GPGGA,100615.067,3718.217,N,12754.390,E,1,12,1.0,0.0,M,0.0,M,,*6A"/-->
+<!-- 	 <param name="nmea_gga" value="$GPGGA,012829.500,3549.489,N,12845.200,E,1,12,1.0,0.0,M,0.0,M,,*6D"/> -->
+

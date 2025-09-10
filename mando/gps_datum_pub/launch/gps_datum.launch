@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node pkg="gps_datum_pub" type="gps_datum_pub_node" name="gps_datum_pub_node">  
+  
+    <!-- Datum as latitude, longitude [decimal deg.], yaw [ENU, degrees] -->      
+    <!--<rosparam param="datum">[35.824790 , 128.7533499 , 0]</rosparam>  영남대 경기장 -->
+    
+	<!--<rosparam param="datum">[37.2392290473004 , 126.773139238358, 0]</rosparam>-->
+	<!--<rosparam param="datum">[37.30385114065767,127.9071879386902, 0]</rosparam>-->
+	<rosparam param="datum">[37.28899399530732,127.1075637638569, 0]</rosparam>
+	<param name="use_gps_init_datum"      type = "bool"              value = "false" />    
+	<param name="waypoint_file_name"      type = "string"            value = "/home/kyeongseo/one_fifth_catkin_ws/waypoints/r.txt"/>
+		
+    
+    <!-- <rosparam param="datum">[37.304163 ,127.90754759999994 , 0]</rosparam> -->
+     <!--<rosparam param="datum">[37.338443,  127.899031 , 0]</rosparam></rosparam>  -->
+    
+  </node>
+  
+</launch>

@@ -1,0 +1,36 @@
+<launch>
+
+   <node pkg="gps_imu_link" type="gps_imu_link_new_node" name="gps_imu_link_new_node" output="screen">
+       
+       
+       <!-- gps 상대 좌표 및 절대 좌표 사용 여부 false일 경우 gps datum이 topic 으로 필요함 -->
+       <param name = "imu1_topic"                  			type = "string" 				value = "/handsfree/imu/data"/>                                                                                    
+       <param name = "imu1_yaw_degree_topic"				type = "string" 				value = "/handsfree/imu/yaw_degree"/>
+       <param name = "imu1_yaw_radian_topic"				type = "string"            		value = "/handsfree/imu/yaw_radian"/>
+       
+       <param name = "imu2_topic"							type = "string"					value = "/robor/imu/data"/>
+       <param name = "imu2_yaw_degree_topic"				type = "string"					value = "/robor/imu/yaw_degree"/>
+       <param name = "imu2_yaw_radian_topic"				type = "string"					value = "/robor/imu/yaw_radian"/>
+       
+       
+       <param name = "choose_imu_no"						type="int"      value = "1"/>    <!--  1또는 2로 선택할 것-->
+       
+       <param name = "imu_yaw_angle_radian_topic"                         value = "/imu/heading_angle_radian"/>
+       <param name = "imu_yaw_angle_degree_topic"                         value = "/imu/heading_angle_degree"/>
+       <param name = "imu_heading_angle_offset_degree_topic"              value = "/imu/heading_angle_offset_degree"/>
+       
+       <param name = "gps1_utm_topic"                                     value = "/gps/utm_pos1"/>  
+       <param name = "gps2_utm_topic"                                     value = "/gps/utm_pos2"/>  
+       <param name = "gps_heading_angle_topic"                            value = "/gps/heading_angle"/>
+       <param name = "car_speed_topic"                                    value = "/Car_Control_cmd/Speed_Float32"/>    
+      
+       <param name = "imu_yaw_offset_degree"              type="double"   					value = "70"/>
+       
+       <param name = "auto_imu_offset_flag"               type= "bool"    					value ="true"/>   //true 일 경우 auto imu offset setting
+        
+       <param name = "imu_correction_enable__topic" 	  type = "string" 					value = "/flag/imu_auto_correction"/>
+       
+   </node>
+
+</launch>
+

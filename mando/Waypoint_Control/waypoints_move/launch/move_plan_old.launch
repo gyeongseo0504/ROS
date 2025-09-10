@@ -1,0 +1,27 @@
+<launch>
+
+   <node pkg="waypoints_move" type="waypoints_move_node" name="waypoints_move_node" output="screen">
+       
+       
+       <!-- gps 상대 좌표 및 절대 좌표 사용 여부 false일 경우 gps datum이 topic 으로 필요함 -->
+       
+       	<param name="use_gps_init_datum"                                  type= "bool"              value = "false" />    
+		<param name="waypoint_file_name"     							  type= "string"            value = "/home/amap/one_fifth_catkin_ws/src/GPS_Package/GPS_GUI/scripts/GPS_Waypoint_Ui/yongin_wp.txt"/>
+	
+		<param name = "imu_heading_angle_radian_topic"                    type = "string"   value = "/imu/heading_angle_radian"/>
+       
+		<param name = "use_utm_absolute_mode"                                               value = "false"/>       
+		<param name = "steering_control_method"                           type = "int"      value = "2"/>
+		<param name = "steering_correction_factor"                        type = "double"   value = "17"/> 
+		<param name = "use_imu_yaw_angle"                                 type = "bool"     value = "1"/>
+              
+		<param name = "cross_track_correction_angle_limit"                type = "double"   value = "6"/>  
+		<param name = "look_ahead_distance"                               type = "double"   value = "2.0"/>  
+		<param name = "way_point_ahead_distance"                          type = "double"   value = "0.50"/>  
+		<param name = "enable_lidar_avoidance"                            type = "bool"     value = "0"/>        
+		<param name = "location_virtual_line_sensor"                      type = "double"   value = "0.9"/> 
+       
+   </node>
+
+</launch>
+

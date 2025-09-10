@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 인자 정의 -->
+    <arg name="can_interface" default="can0"/>
+    <arg name="can_bitrate" default="500000"/>
+    <arg name="send_period_ms" default="100"/>
+    <arg name="plot" default="false"/>
+
+    <!-- CAN 컨트롤러 노드 -->
+    <node name="can_controller" pkg="can_control" type="can_controller.py" output="screen">
+        <param name="can_interface" value="$(arg can_interface)"/>
+        <param name="can_bitrate" value="$(arg can_bitrate)"/>
+        <param name="send_period_ms" value="$(arg send_period_ms)"/>
+    </node>
+
+    <!-- 키보드 컨트롤 노드 -->
+    <node name="keyboard_control" pkg="can_control" type="keyboard_control.py" output="screen" launch-prefix="xterm -e"/>
+
+    <!-- rqt_plot 노드 (옵션 실행) -->
+    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+          args="/can_debug/data[0] /can_debug/data[1] /can_debug/data[2]"
+          if="$(arg plot)"/>
+</launch>

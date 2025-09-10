@@ -1,0 +1,23 @@
+<launch>
+  <!-- ★ TF Static Transform Publishers 활성화 -->
+  <node pkg="tf" type="static_transform_publisher" name="utm_to_map" 
+        args="0 0 0 0 0 0 utm map 10" />
+  
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" 
+        args="0 0 0 0 0 0 map odom 10" />
+  
+  <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_base_link" 
+        args="0 0 0.02 0 0 0 base_footprint base_link 10" />
+  
+  <!-- 차량 제어 노드 -->
+  <node pkg="m_car_encoder_serial" type="henes_car_control_serial_node" name="henes_base_control_node" output="screen">
+    <param name="m_acceleration" type="double" value="1.0"/>
+    <param name="m_deceleration" type="double" value="0.8"/>
+    <param name="s_acceleration" type="double" value="100"/>
+    <param name="s_deceleration" type="double" value="100"/>
+    <param name="imu_yaw_offset_angle_topic" type="string" value="/imu/yaw_offset_degree"/>
+  </node> 
+  
+  <!-- 경로 시각화 노드 -->
+  <node pkg="m_car_encoder_serial" type="encoder_odom_path_node.py" name="encoder_path_node" />
+</launch>
